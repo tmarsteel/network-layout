@@ -2,6 +2,8 @@ package io.github.tmarsteel.networklayout.network
 
 import io.github.tmarsteel.networklayout.layout.Layoutable
 import io.github.tmarsteel.networklayout.layout.MajorStationLayoutable
+import io.github.tmarsteel.networklayout.layout.Theme
+import org.chocosolver.solver.Model
 
 class Network {
     private val _stations = mutableMapOf<Long, Station>()
@@ -21,8 +23,8 @@ class Network {
         station.addLine(line)
     }
 
-    fun visitLayoutables(visitor: (Layoutable) -> Unit) {
-        _stations.values.forEach { it.visitLayoutables(visitor) }
+    fun createLayoutables(model: Model, theme: Theme, visitor: (Layoutable) -> Unit) {
+        _stations.values.forEach { it.createLayoutables(model, theme, visitor) }
     }
 
     companion object {
@@ -55,8 +57,8 @@ class Station(
         connectsToLines.add(line)
     }
 
-    fun visitLayoutables(visitor: (Layoutable) -> Unit) {
-        visitor(MajorStationLayoutable())
+    fun createLayoutables(model: Model, theme: Theme, visitor: (Layoutable) -> Unit) {
+        visitor(MajorStationLayoutable(model, theme))
     }
 
     override fun equals(other: Any?): Boolean {

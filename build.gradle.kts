@@ -20,6 +20,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation("com.github.ajalt.clikt:clikt-jvm:4.2.2")
     implementation("com.github.nwillc:ksvg:2.2.0")
+    implementation("org.choco-solver:choco-solver:4.10.14")
     testImplementation(kotlin("test"))
 }
 
