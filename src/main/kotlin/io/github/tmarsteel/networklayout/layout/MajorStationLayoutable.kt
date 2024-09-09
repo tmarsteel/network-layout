@@ -3,12 +3,17 @@ package io.github.tmarsteel.networklayout.layout
 import com.github.nwillc.ksvg.elements.SVG
 import io.github.tmarsteel.networklayout.dslPath
 
-class MajorStationLayoutable : Layoutable {
+class MajorStationLayoutable : Layoutable, SvgRenderable {
     override val width: Double = 5.0
     override val height: Double = 5.0
 
-    override val render: SVG.(x: Double, y: Double, theme: Theme) -> Unit = { x, y, theme ->
+    override val x = Constrainable.Variable()
+    override val y = Constrainable.Variable()
+    override val render: SVG.(theme: Theme) -> Unit = { theme ->
         val halfStroke = theme.majorStationBorderWidth / 2.0
+        val x = this@MajorStationLayoutable.x.concrecte
+        val y = this@MajorStationLayoutable.y.concrecte
+
         dslPath {
             moveTo(
                 x = x + theme.majorStationBorderRadius + halfStroke,

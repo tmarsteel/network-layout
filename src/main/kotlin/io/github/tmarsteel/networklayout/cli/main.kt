@@ -42,7 +42,7 @@ object MainCommand : CliktCommand() {
         val svg = SVG.svg {
             viewBox = viewBox(offsetX = 0.0, offsetY = 0.0, width = 10.0, height = 10.0)
 
-            layoutables.take(1).forEach { it.render(this@svg, 0.0, 0.0, Theme.DEFAULT) }
+            layoutables.take(1).forEach { it.render(this@svg, Theme.DEFAULT) }
         }
 
         outputFile.writer(Charsets.UTF_8).use { outputFileWriter ->
