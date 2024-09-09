@@ -57,6 +57,10 @@ class DslPath {
         _definition.append(y.toString())
     }
 
+    fun closePath() {
+        _definition.append(" Z")
+    }
+
     private fun StringBuilder.appendFlag(flag: Boolean) {
         if (flag) {
             append('1')

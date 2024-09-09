@@ -8,41 +8,61 @@ class MajorStationLayoutable : Layoutable {
     override val height: Double = 5.0
 
     override val render: SVG.(x: Double, y: Double, theme: Theme) -> Unit = { x, y, theme ->
-        rect {
-            this@rect.x = x.toString()
-            this@rect.y = y.toString()
-            this@rect.width = this@MajorStationLayoutable.width.toString()
-            this@rect.height = this@MajorStationLayoutable.height.toString()
-            fill = "#F00"
-        }
-        rect {
-            this@rect.x = (x + this@MajorStationLayoutable.height - theme.majorStationBorderWidth).toString()
-            this@rect.y = (x + this@MajorStationLayoutable.width - theme.majorStationBorderWidth).toString()
-            this@rect.width = theme.majorStationBorderWidth.toString()
-            this@rect.height = theme.majorStationBorderWidth.toString()
-            fill = "#0F0"
-        }
-
         val halfStroke = theme.majorStationBorderWidth / 2.0
         dslPath {
             moveTo(
-                x = x + theme.majorStationBorderWidth + theme.majorStationBorderRadius,
+                x = x + theme.majorStationBorderRadius + halfStroke,
                 y = y + halfStroke,
             )
             lineTo(
-                x = x + this@MajorStationLayoutable.width - theme.majorStationBorderWidth - theme.majorStationBorderRadius,
+                x = x + this@MajorStationLayoutable.width - theme.majorStationBorderRadius - halfStroke,
                 y = y + halfStroke,
             )
             arcTo(
                 x = x + this@MajorStationLayoutable.width - halfStroke,
-                y = y + theme.majorStationBorderWidth,
+                y = y + theme.majorStationBorderRadius + halfStroke,
                 radiusX = theme.majorStationBorderRadius,
                 radiusY = theme.majorStationBorderRadius,
+                sweep = true,
             )
+            lineTo(
+                x = x + this@MajorStationLayoutable.width - halfStroke,
+                y = y + this@MajorStationLayoutable.height - theme.majorStationBorderRadius - halfStroke,
+            )
+            arcTo(
+                x = x + this@MajorStationLayoutable.width - theme.majorStationBorderRadius - halfStroke,
+                y = y + this@MajorStationLayoutable.height - halfStroke,
+                radiusX = theme.majorStationBorderRadius,
+                radiusY = theme.majorStationBorderRadius,
+                sweep = true,
+            )
+            lineTo(
+                x = x + theme.majorStationBorderRadius + halfStroke,
+                y = y + this@MajorStationLayoutable.height - halfStroke
+            )
+            arcTo(
+                x = x + halfStroke,
+                y = y + this@MajorStationLayoutable.height - theme.majorStationBorderRadius - halfStroke,
+                radiusX = theme.majorStationBorderRadius,
+                radiusY = theme.majorStationBorderRadius,
+                sweep = true,
+            )
+            lineTo(
+                x = x + halfStroke,
+                y = y + theme.majorStationBorderRadius + halfStroke
+            )
+            arcTo(
+                x = x + theme.majorStationBorderRadius + halfStroke,
+                y = y + halfStroke,
+                radiusX = theme.majorStationBorderRadius,
+                radiusY = theme.majorStationBorderRadius,
+                sweep = true,
+            )
+            closePath()
 
             strokeWidth = theme.majorStationBorderWidth
             stroke = "#000"
-            fill = "#F00"
+            fill = "#FFF"
         }
     }
 }
