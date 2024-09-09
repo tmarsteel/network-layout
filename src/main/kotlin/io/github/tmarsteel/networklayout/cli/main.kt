@@ -15,7 +15,6 @@ import io.github.tmarsteel.networklayout.viewBox
 import kotlinx.serialization.json.decodeFromStream
 import org.chocosolver.solver.Model
 import kotlin.io.path.inputStream
-import kotlin.io.path.readText
 import kotlin.io.path.writer
 
 object MainCommand : CliktCommand() {
@@ -33,29 +32,57 @@ object MainCommand : CliktCommand() {
         .required()
 
     override fun run() {
-        val networkDto = networkFile.inputStream().use { networkInStream ->
+        var networkDto = networkFile.inputStream().use { networkInStream ->
             NetworkDto.FORMAT.decodeFromStream<NetworkDto>(networkInStream)
         }
+        // limit input size for quick solution finding
+        networkDto = networkDto.copy(lines = networkDto.lines.take(1))
 
+        echo("Building semantic model of input data")
         val networkModel = Network.from(networkDto)
+
+        echo("Defining layout constraints")
         val layoutModel = Model()
-        val layoutables = mutableSetOf<Layoutable>()
+        val layoutables = ArrayList<Layoutable>()
         networkModel.createLayoutables(layoutModel, Theme.DEFAULT, layoutables::add)
-        layoutables.forEach { postingLayoutable ->
-            val allOthers = layoutables.asSequence().filter { it !== postingLayoutable }
-            postingLayoutable.postConstraints(allOthers)
+        var layoutableIndex = 0
+        while (layoutableIndex < layoutables.size) {
+            val layoutable = layoutables[layoutableIndex]
+            val allOthers = layoutables.filterIndexed { index, _ ->
+                index != layoutableIndex
+            }
+            layoutable.postGlobalConstraints(allOthers.asSequence())
+            layoutableIndex++
         }
 
+        val modelStats = layoutModel.modelAnalyser.analyseModel()
+        val nVars = modelStats.varsTypeStats.sumOf { it.nbVariables }
+        val nPropagators = modelStats.cstrsTypeStats.sumOf { it.nbPropagators }
+        echo("Computing a layout ($nVars vars, $nPropagators propagators)")
         // TODO: find an optimal solution
         if (!layoutModel.solver.solve()) {
             throw PrintMessage("there is no viable layout for this network, sorry.", statusCode = 2, true)
         }
         val layoutSolution = layoutModel.solver.findSolution()
+        echo("Found a layout! Rendering to $outputFile")
+
+        val offsetX = layoutables.asSequence()
+            .map { layoutSolution.getIntVal(it.x) }
+            .min()
+        val offsetY = layoutables.asSequence()
+            .map { layoutSolution.getIntVal(it.y) }
+            .min()
+        val sizeX = layoutables.asSequence()
+            .map { layoutSolution.getIntVal(it.xPlusWidth) }
+            .max()
+        val sizeY = layoutables.asSequence()
+            .map { layoutSolution.getIntVal(it.yPlusHeight) }
+            .max()
 
         val svg = SVG.svg {
-            viewBox = viewBox(offsetX = 0.0, offsetY = 0.0, width = 10.0, height = 10.0)
+            viewBox = viewBox(offsetX.toDouble(), offsetY.toDouble(), sizeX.toDouble(), sizeY.toDouble())
 
-            layoutables.take(1).forEach { it.render(this@svg, layoutSolution) }
+            layoutables.forEach { it.render(this@svg, layoutSolution) }
         }
 
         outputFile.writer(Charsets.UTF_8).use { outputFileWriter ->

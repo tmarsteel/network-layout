@@ -7,22 +7,16 @@ import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
 import kotlin.math.nextUp
 
-class MajorStationLayoutable(private val model: Model, val theme: Theme) : Layoutable {
-    override val x: IntVar = model.intVar(0, Layoutable.MAX_X)
-    override val y: IntVar = model.intVar(0, Layoutable.MAX_Y)
+class MajorStationMarkerLayoutable(model: Model, val theme: Theme) : Layoutable(model) {
     override val width: IntVar = model.intVar(theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth).plus(2).nextUp().toInt(), 100)
     override val height: IntVar = model.intVar(theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth).plus(2).nextUp().toInt(), 100)
 
-    override fun postConstraints(allLayoutables: Sequence<Layoutable>) {
-
-    }
-
     override val render: SVG.(Solution) -> Unit = { layoutSolution ->
         val halfStroke = theme.majorStationBorderWidth / 2.0
-        val x = layoutSolution.getIntVal(this@MajorStationLayoutable.x).toDouble()
-        val y = layoutSolution.getIntVal(this@MajorStationLayoutable.y).toDouble()
-        val width = layoutSolution.getIntVal(this@MajorStationLayoutable.width).toDouble()
-        val height = layoutSolution.getIntVal(this@MajorStationLayoutable.height).toDouble()
+        val x = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.x).toDouble()
+        val y = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.y).toDouble()
+        val width = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.width).toDouble()
+        val height = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.height).toDouble()
 
         dslPath {
             moveTo(
@@ -36,8 +30,8 @@ class MajorStationLayoutable(private val model: Model, val theme: Theme) : Layou
             arcTo(
                 x = x + width - halfStroke,
                 y = y + theme.majorStationBorderRadius + halfStroke,
-                radiusX = theme.majorStationBorderRadius.toDouble(),
-                radiusY = theme.majorStationBorderRadius.toDouble(),
+                radiusX = theme.majorStationBorderRadius,
+                radiusY = theme.majorStationBorderRadius,
                 sweep = true,
             )
             lineTo(
