@@ -4,6 +4,7 @@ import com.github.nwillc.ksvg.elements.SVG
 import org.chocosolver.solver.Model
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
+import org.chocosolver.solver.variables.impl.FixedIntVarImpl
 
 abstract class Layoutable(
     protected val model: Model,
@@ -15,12 +16,20 @@ abstract class Layoutable(
 
     /** is always be `x.add(width)`; is stored as a separate property for caching */
     val xPlusWidth: IntVar by lazy {
-        x.add(width).intVar()
+        if (width is FixedIntVarImpl) {
+            model.intView(1, x, width.value)
+        } else {
+            x.add(width).intVar()
+        }
     }
 
     /** is always be `x.add(height)`; is stored as a separate property for caching */
     val yPlusHeight: IntVar by lazy {
-        y.add(height).intVar()
+        if (height is FixedIntVarImpl) {
+            model.intView(1, y, height.value)
+        } else {
+            y.add(height).intVar()
+        }
     }
 
     /**

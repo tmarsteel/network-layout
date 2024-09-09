@@ -8,7 +8,20 @@ import kotlinx.serialization.json.Json
 data class StationDto(
     val id: Long,
     val name: String,
-)
+    val gravity: Gravity? = null,
+) {
+    enum class Gravity {
+        NORTH,
+        NORTH_EAST,
+        EAST,
+        SOUTH_EAST,
+        SOUTH,
+        SOUTH_WEST,
+        WEST,
+        NORTH_WEST,
+        ;
+    }
+}
 
 @Serializable
 data class NetworkDto(

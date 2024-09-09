@@ -35,14 +35,15 @@ object MainCommand : CliktCommand() {
         var networkDto = networkFile.inputStream().use { networkInStream ->
             NetworkDto.FORMAT.decodeFromStream<NetworkDto>(networkInStream)
         }
-        // limit input size for quick solution finding
-        networkDto = networkDto.copy(lines = networkDto.lines.take(1))
+        networkDto = networkDto.copy(lines = networkDto.lines.takeLast(7))
 
         echo("Building semantic model of input data")
         val networkModel = Network.from(networkDto)
 
         echo("Defining layout constraints")
-        val layoutModel = Model()
+        val layoutModel = Model().apply {
+            settings.enableViews()
+        }
         val layoutables = ArrayList<Layoutable>()
         networkModel.createLayoutables(layoutModel, Theme.DEFAULT, layoutables::add)
         var layoutableIndex = 0

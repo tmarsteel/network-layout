@@ -2,7 +2,6 @@ package io.github.tmarsteel.networklayout.network
 
 import io.github.tmarsteel.networklayout.layout.Layoutable
 import io.github.tmarsteel.networklayout.layout.MajorStationMarkerLayoutable
-import io.github.tmarsteel.networklayout.layout.SimpleStationMarkerLayoutable
 import io.github.tmarsteel.networklayout.layout.Theme
 import org.chocosolver.solver.Model
 
@@ -60,9 +59,8 @@ class Station(
 
     fun createLayoutables(model: Model, theme: Theme, visitor: (Layoutable) -> Unit) {
         when (connectsToLines.size) {
-            0 -> {}
-            1 -> visitor(SimpleStationMarkerLayoutable(model, theme))
-            else -> visitor(MajorStationMarkerLayoutable(model, theme))
+            0, 1 -> {}
+            else -> visitor(MajorStationMarkerLayoutable(model, theme, connectsToLines.size))
         }
 
     }

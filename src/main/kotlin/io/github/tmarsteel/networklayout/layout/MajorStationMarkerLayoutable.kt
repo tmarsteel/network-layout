@@ -7,9 +7,16 @@ import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
 import kotlin.math.nextUp
 
-class MajorStationMarkerLayoutable(model: Model, val theme: Theme) : Layoutable(model) {
-    override val width: IntVar = model.intVar(theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth).plus(2).nextUp().toInt(), 100)
-    override val height: IntVar = model.intVar(theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth).plus(2).nextUp().toInt(), 100)
+class MajorStationMarkerLayoutable(
+    model: Model,
+    val theme: Theme,
+    val nLines: Int,
+) : Layoutable(model) {
+    override val width: IntVar = model.intVar(
+        (nLines.toDouble() * (theme.lineThickness + theme.lineSpacing)).nextUp().toInt()
+            .coerceAtLeast((theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth) * 2.0).toInt())
+    )
+    override val height = width
 
     override val render: SVG.(Solution) -> Unit = { layoutSolution ->
         val halfStroke = theme.majorStationBorderWidth / 2.0
