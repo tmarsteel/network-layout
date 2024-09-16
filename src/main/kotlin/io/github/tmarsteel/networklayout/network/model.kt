@@ -31,7 +31,7 @@ class Network {
                 continue
             }
 
-            if (station.connections.size > 2) {
+            if (station.connections.size <= 2) {
                 // simple stations have only two connections
                 continue
             }
@@ -159,6 +159,8 @@ class Line(
     override fun hashCode(): Int {
         return name.hashCode()
     }
+
+    override fun toString() = name
 }
 
 private fun <T> Sequence<T>.isSingleton(): Boolean {

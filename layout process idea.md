@@ -1,6 +1,6 @@
-## Stage 1 - Identifying the cornerstone Stations and their relations
+## Stage 1 - Laying out the cornerstone stations relative to each other
 
-### Identifying cornerstones
+### 1.1 Identifying cornerstones
 
 A run of stations all served by the same 1..n lines is very simple to layout because there's not much choice. Thus, these can be ignored in
 the first stage for simplicity and speed. Thus, the first stage consist of finding the "cornerstone" stations; the stations that will be the most difficult to
@@ -11,14 +11,14 @@ place on the map because they have many heterogenous connections.
   * the set of incoming and outgoing lines (primary and secondary direction) is identical
   * all incoming lines (primary and secondary) come from the same station
   * all outgoing lines (primary and secondary) go to the same station
-* all remaining stations are conerstone stations
+* all remaining stations are cornerstone stations
 
-### Relations
+### 1.2 Relations
 
 Form an undirected graph where every cornerstone station is a node. For all stations A and B: if there is a line running from A to B in any direction, A and B have an edge
 in the graph.
 
-## Stage 2 - laying out the conerstone stations
+## 1.3 laying out the cornerstone stations
 
 With the graph created above we can figure out how to position the cornerstones _relative to each other_ (no absolute locations yet!).
 
@@ -40,14 +40,19 @@ With this information available, we can define a CLP-Z problem whichs solution w
   * Station A south-west allows Station B directions: north-east
   * Station A west allows Station B directions: east
   * Station A north-west allows Station B directions: south-east
-* every combination of any 2 edges gets a variable denoting whether these edges intersect.
-  **TODO: how to define that with only general directions??**
 
-When looking for a solution, we can try and minimize the number of intersections. We could even weigh every edge-intersection
-by the number of lines that would intersect to avoid intersecting many lines if at all possible.
+**This implies that any cornerstone stations can have at most 8 vertices in the graph, otherwise layouting will fail!**
 
-**This implies that any cornerstone stations can have at most 8 vertices in the stage-1 graph, otherwise layouting will fail!**
+## Stage 2 - laying out cornerstones on a grid
 
-## Stage 3 - distances between cornerstones
+In stage 2 we form a grid on which cornerstones are placed. Here we could optimize for a small number of intersections
+in the entire map.
 
-## Stage 4 - placement of non-cornerstone stations along the runs between cornerstone stations, including text labels
+## Stage 3 - absolute positions of cornerstone stations, segments between them
+
+Now we add the information of the non-cornerstone stations back in, giving each cornerstone-to-cornerstone edge
+a minimum length based on the number of simple stations it has. This should allow deriving
+
+* absolute positions on the final SVG viewport for every cornerstone
+* how the lines run from cornerstone-to-cornerstone, where branches are located, ...
+* placement of the simple stations along the segments between cornerstone stations

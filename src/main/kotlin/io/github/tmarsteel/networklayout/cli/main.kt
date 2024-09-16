@@ -5,7 +5,7 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.options.option
 import com.github.ajalt.clikt.parameters.options.required
 import com.github.ajalt.clikt.parameters.types.path
-import io.github.tmarsteel.networklayout.layout.determineRelativeLayout
+import io.github.tmarsteel.networklayout.layout.placeCornerstoneStationsOnGrid
 import io.github.tmarsteel.networklayout.network.Network
 import io.github.tmarsteel.networklayout.network.NetworkDto
 import kotlinx.serialization.json.decodeFromStream
@@ -31,7 +31,7 @@ object MainCommand : CliktCommand() {
         }
 
         val network = Network.from(networkDto)
-        determineRelativeLayout(network.cornerstoneStations.toSet())
+        network.placeCornerstoneStationsOnGrid()
 
         /*
         val svg = SVG.svg {

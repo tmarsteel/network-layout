@@ -1,26 +1,22 @@
 package io.github.tmarsteel.networklayout.layout
 
 import io.github.tmarsteel.networklayout.lateinitOnce
+import io.github.tmarsteel.networklayout.network.Network
 import io.github.tmarsteel.networklayout.network.Station
 import org.chocosolver.solver.Model
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
+import java.util.*
 import kotlin.math.nextUp
 import kotlin.math.sqrt
 
 private data class StationNode(
     val station: Station,
-    val gridLength: Int,
-    val gridSizeX: Int,
 ) {
-    var gridIndex: IntVar by lateinitOnce()
-    var gridX: IntVar by lateinitOnce()
-    var gridY: IntVar by lateinitOnce()
+
 
     fun postToModel(model: Model) {
-        gridIndex = model.intVar(0, gridLength - 1)
-        gridX = gridIndex.mod(gridSizeX).intVar()
-        gridY = gridIndex.div(gridSizeX).intVar()
+
     }
 }
 
@@ -61,11 +57,52 @@ private class ConnectionEdge(
 }
 
 /**
- * implements stage 2: finds a relative location (see [Direction]) for all stations that minimizes
- * intersections of connections between stations. The results are written to [Station.Connection.outgoingDirection].
+ * implements stage 1
  */
-fun determineRelativeLayout(stations: Set<Station>) {
-    val gridSizeX = sqrt(stations.size.toDouble()).nextUp().toInt()
+fun Network.placeCornerstoneStationsOnGrid() {
+    val cornerstoneStationsSet = cornerstoneStations.toSet()
+    val cornerstoneStationNodesByStation = cornerstoneStationsSet.associateWith { StationNode(it) }
+    val stationsVisited = Collections.newSetFromMap<Station>(IdentityHashMap())
+    val edges = mutableSetOf<ConnectionEdge>()
+    fun visit(stationA: Station) {
+        if (stationA in stationsVisited) {
+            return
+        }
+
+        stationsVisited.add(stationA)
+        val followedStations = mutableSetOf<Station>()
+
+        fun follow(connection: Station.Connection) {
+            if (connection.station in followedStations) {
+                return
+            }
+            followedStations.add(connection.station)
+            if (connection.station in cornerstoneStationsSet) {
+                if (connection.station != stationA) {
+                    edges.add(
+                        ConnectionEdge(
+                            cornerstoneStationNodesByStation.getValue(stationA),
+                            cornerstoneStationNodesByStation.getValue(connection.station)
+                        )
+                    )
+                }
+                return
+            }
+
+            connection.station.connections.forEach(::follow)
+        }
+
+        stationA.connections.forEach(::follow)
+    }
+    cornerstoneStations.forEach(::visit)
+
+    edges.forEach { edge ->
+        println("${edge.stationAnode.station.name} connects to ${edge.stationBnode.station.name}")
+    }
+}
+
+fun placeOnGrid() {
+    /*val gridSizeX = sqrt(stations.size.toDouble()).nextUp().toInt()
     val gridLength = gridSizeX * gridSizeX
 
     val stationNodesByStation = stations
@@ -84,16 +121,14 @@ fun determineRelativeLayout(stations: Set<Station>) {
     stationNodesByStation.values.forEach { it.postToModel(model) }
     
     edges.forEach { it.postToModel(model) }
-    edges.asSequence().distinctPairs().forEach { edge1, edge2 ->
+    edges.asSequence().distinctPairs().forEach { (edge1, edge2) ->
 
     }
     val solution = model.solver.findSolution()
         ?: error("Couldn't find a viable relative layout for the cornerstone stations")
 
-    edges.forEach { it.storeSolutionBackToModel(solution) }
+    edges.forEach { it.storeSolutionBackToModel(solution) }*/
 }
-
-private fun Model.noIntersection
 
 /**
  * @return all distinct 2-element combinations from the iterable.
