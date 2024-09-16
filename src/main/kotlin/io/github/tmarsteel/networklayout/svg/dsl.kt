@@ -1,4 +1,4 @@
-package io.github.tmarsteel.networklayout
+package io.github.tmarsteel.networklayout.svg
 
 import com.github.nwillc.ksvg.elements.Container
 

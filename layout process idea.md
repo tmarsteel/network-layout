@@ -33,14 +33,18 @@ With this information available, we can define a CLP-Z problem whichs solution w
 * every station+edge gets a variable for the direction in which the edge connects to the station (one of the 8 above). These two variables on two stations connected by
   an edge must be constrained so that the directions are compatible:
   * Station A north allows Station B directions: south
-  * Station A north-east allows Station B directions: west, south-west, south
+  * Station A north-east allows Station B directions: south-west
   * Station A east allows Station B directions: west
-  * Station A south-east allows Station B directions: north, north-west, west
+  * Station A south-east allows Station B directions: north-west
   * Station A south allows Station B directions: north
-  * Station A south-west allows Station B directions: north, north-east, east
+  * Station A south-west allows Station B directions: north-east
   * Station A west allows Station B directions: east
-  * Station A north-west allows Station B directions: south, south-east, east
-* every combination of any 2 edges gets a variable denoting whether these edges interset. TODO: how to define that with only general directions??
+  * Station A north-west allows Station B directions: south-east
+* every combination of any 2 edges gets a variable denoting whether these edges intersect.
+  **TODO: how to define that with only general directions??**
+
+When looking for a solution, we can try and minimize the number of intersections. We could even weigh every edge-intersection
+by the number of lines that would intersect to avoid intersecting many lines if at all possible.
 
 **This implies that any cornerstone stations can have at most 8 vertices in the stage-1 graph, otherwise layouting will fail!**
 

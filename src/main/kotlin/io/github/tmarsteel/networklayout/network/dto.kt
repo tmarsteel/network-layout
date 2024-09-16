@@ -1,5 +1,6 @@
 package io.github.tmarsteel.networklayout.network
 
+import io.github.tmarsteel.networklayout.layout.Direction
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -8,20 +9,8 @@ import kotlinx.serialization.json.Json
 data class StationDto(
     val id: Long,
     val name: String,
-    val gravity: Gravity? = null,
-) {
-    enum class Gravity {
-        NORTH,
-        NORTH_EAST,
-        EAST,
-        SOUTH_EAST,
-        SOUTH,
-        SOUTH_WEST,
-        WEST,
-        NORTH_WEST,
-        ;
-    }
-}
+    val gravity: Direction? = null,
+)
 
 @Serializable
 data class NetworkDto(

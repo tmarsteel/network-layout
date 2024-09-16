@@ -1,29 +1,17 @@
-package io.github.tmarsteel.networklayout.layout
+package io.github.tmarsteel.networklayout.svg
 
 import com.github.nwillc.ksvg.elements.SVG
-import io.github.tmarsteel.networklayout.dslPath
-import org.chocosolver.solver.Model
-import org.chocosolver.solver.Solution
-import org.chocosolver.solver.variables.IntVar
-import kotlin.math.nextUp
+import io.github.tmarsteel.networklayout.layout.Theme
 
-class MajorStationMarkerLayoutable(
-    model: Model,
+class MultiLineStationDrawable(
     val theme: Theme,
-    val nLines: Int,
-) : Layoutable(model) {
-    override val width: IntVar = model.intVar(
-        (nLines.toDouble() * (theme.lineThickness + theme.lineSpacing)).nextUp().toInt()
-            .coerceAtLeast((theme.majorStationBorderRadius.coerceAtLeast(theme.majorStationBorderWidth) * 2.0).toInt())
-    )
-    override val height = width
-
-    override val render: SVG.(Solution) -> Unit = { layoutSolution ->
+) : Drawable() {
+    override val draw: SVG.() -> Unit = {
         val halfStroke = theme.majorStationBorderWidth / 2.0
-        val x = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.x).toDouble()
-        val y = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.y).toDouble()
-        val width = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.width).toDouble()
-        val height = layoutSolution.getIntVal(this@MajorStationMarkerLayoutable.height).toDouble()
+        val x = 0.0 // TODO
+        val y = 0.0 // TODO
+        val width = 5.0 // TODO
+        val height = 5.0 // TODO
 
         dslPath {
             moveTo(
