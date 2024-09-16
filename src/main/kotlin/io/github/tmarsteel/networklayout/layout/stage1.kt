@@ -60,6 +60,16 @@ private class ConnectionEdge(
  * implements stage 1
  */
 fun Network.placeCornerstoneStationsOnGrid() {
+    val (cornerstoneNodes, edges) = findCornerstoneStationsAndEdges()
+    cornerstoneNodes
+        .filter { it.station.gravity == null }
+        .takeUnless { it.isEmpty() }
+        ?.let { cornerstonesWithoutGravity ->
+            error("missing gravity on cornerstone stations " + cornerstonesWithoutGravity.sortedBy { it.station.id }.joinToString(transform = { it.station.toString() }))
+        }
+}
+
+private fun Network.findCornerstoneStationsAndEdges(): Pair<Set<StationNode>, Set<ConnectionEdge>> {
     val cornerstoneStationsSet = cornerstoneStations.toSet()
     val cornerstoneStationNodesByStation = cornerstoneStationsSet.associateWith { StationNode(it) }
     val stationsVisited = Collections.newSetFromMap<Station>(IdentityHashMap())
@@ -96,9 +106,7 @@ fun Network.placeCornerstoneStationsOnGrid() {
     }
     cornerstoneStations.forEach(::visit)
 
-    edges.forEach { edge ->
-        println("${edge.stationAnode.station.name} connects to ${edge.stationBnode.station.name}")
-    }
+    return Pair(cornerstoneStationNodesByStation.values.toSet(), edges)
 }
 
 fun placeOnGrid() {

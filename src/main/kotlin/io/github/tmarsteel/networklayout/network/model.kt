@@ -56,7 +56,7 @@ class Network {
         fun from(dto: NetworkDto): Network {
             val network = Network()
             dto.stations.asSequence()
-                .map { Station(it.id, it.name) }
+                .map { Station(it.id, it.name, it.gravity) }
                 .forEach(network::registerStation)
 
             dto.lines.asSequence()
@@ -76,6 +76,7 @@ class Network {
 class Station(
     val id: Long,
     val name: String,
+    val gravity: Direction?,
 ) {
     private val connectsToLines = mutableSetOf<Line>()
 
