@@ -13,14 +13,25 @@ place on the map because they have many heterogenous connections.
   * all outgoing lines (primary and secondary) go to the same station
 * all remaining stations are cornerstone stations
 
-### 1.2 Relations
+### 1.2 Graph of cornerstone stations
 
 Form an undirected graph where every cornerstone station is a node. For all stations A and B: if there is a line running from A to B in any direction, A and B have an edge
 in the graph.
 
-## 1.3 laying out the cornerstone stations
+### 1.3 Grouping cornerstone stations into strands
 
-With the graph created above we can figure out how to position the cornerstones _relative to each other_ (no absolute locations yet!).
+In this step, all cornerstone stations that are along a single track/road/connection running in the same direction from the map center are grouped into a "strand". 
+This is done using the "gravity" input on every cornerstone station.
+
+Also, we can determine which end of every strand should be placed close to the map center and which one further away from it, basically the direction of the strand.
+This approach lays the foundation for radial network layouts.
+
+### 1.4 laying out the strands
+
+Finding and sorting the strands will gives the cornerstone stations a stable relative position to one another. The next step is to lay out the strands relative
+to each other to minimize intersections of segments that connect the strands. This is crucial for making circular networks/lines work.
+
+###  aasd
 
 Each station is given 8 geographic directions relative to itself: north, north-east, east, south-east, south, south-west, west, north-west.
 
@@ -42,6 +53,8 @@ With this information available, we can define a CLP-Z problem whichs solution w
   * Station A north-west allows Station B directions: south-east
 
 **This implies that any cornerstone stations can have at most 8 vertices in the graph, otherwise layouting will fail!**
+
+
 
 ## Stage 2 - laying out cornerstones on a grid
 
