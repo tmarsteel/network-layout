@@ -66,7 +66,8 @@ private class ConnectionEdge(
 // S7 and S5 run completely independently to NORTH_EAST
 // these independent tracks will be called strands in this code
 private class Strand(initialStation: StationNode) {
-    val stations = mutableSetOf<StationNode>(initialStation)
+    private var completed = false
+    private val stations = mutableSetOf<StationNode>(initialStation)
 
     /**
      * Attempts to add the given [candidate] to this strand. Succeeds iff
@@ -75,6 +76,8 @@ private class Strand(initialStation: StationNode) {
      * @return whether the station was added or [candidate] was already part of the strand before
      */
     fun tryAdd(candidate: StationNode): Boolean {
+        check(!completed) { "Strand already completed!" }
+
         if (candidate in stations) {
             return true
         }
@@ -90,6 +93,78 @@ private class Strand(initialStation: StationNode) {
 
         stations.add(candidate)
         return true
+    }
+
+    private val stationsInOrder = ArrayList<StationNode>(1)
+
+    /**
+     * completes the strand, preventing further mutation through [tryAdd]
+     */
+    fun complete() {
+        if (completed) {
+            return
+        }
+        completed = true
+
+        stationsInOrder.ensureCapacity(stations.size)
+
+        val stationsToSort = stations.toMutableList()
+        while (stationsToSort.isNotEmpty()) {
+            val stationIterator = stationsToSort.listIterator()
+            var anyStationSorted = false
+            stations@while (stationIterator.hasNext()) {
+                val stationToSort = stationIterator.next()
+                if (stationsInOrder.isEmpty()) {
+                    stationsInOrder.add(stationToSort)
+                    stationIterator.remove()
+                    anyStationSorted = true
+                    continue@stations
+                }
+
+                val connectsToIndices = stationsInOrder
+                    .asSequence()
+                    .mapIndexed { index, sortedStation -> Pair(index, sortedStation) }
+                    .filter { (_, sortedStation) -> sortedStation.hasEdgeWith(stationToSort) }
+                    .map { (index, _) -> index }
+                    .sorted()
+                    .toList()
+
+                when (connectsToIndices.size) {
+                    0 -> {}
+                    1 -> {
+                        when (val connectsToIndex = connectsToIndices.single()) {
+                            0 -> stationsInOrder.addFirst(stationToSort)
+                            else -> stationsInOrder.add(connectsToIndex + 1, stationToSort)
+                        }
+                        stationIterator.remove()
+                        anyStationSorted = true
+
+                    }
+                    2 -> {
+                        val (indexBefore, indexAfter) = connectsToIndices
+                        check(indexBefore + 1 == indexAfter) {
+                            "Non-linear strand! $stationToSort doesn't fit linearly into this partial strand: $stationsInOrder"
+                        }
+
+                        stationsInOrder.add(indexAfter, stationToSort)
+                        stationIterator.remove()
+                        anyStationSorted = true
+                    }
+                }
+            }
+
+            check(anyStationSorted) {
+                "Could not topoligically sort this strand: $stations; stations not sorted: $stationsToSort"
+            }
+        }
+    }
+
+    override fun toString(): String {
+        return if (completed) {
+            "Strand[completed; $stationsInOrder]"
+        } else {
+            "Strand[partial; $stations]"
+        }
     }
 }
 
@@ -127,13 +202,11 @@ fun Network.placeCornerstoneStationsOnGrid() {
                 strands.add(Strand(stationNodesToAllocate.removeFirst()))
             }
         }
+    strandsByDirection.values.flatten().forEach { it.complete() }
 
     strandsByDirection.forEach { direction, strands ->
         println(direction)
-        strands.forEach {
-            it.stations.map { it.station.name }.forEach(::println)
-            println("---")
-        }
+        strands.forEach(::println)
     }
 }
 
