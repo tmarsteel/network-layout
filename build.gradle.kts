@@ -22,6 +22,8 @@ dependencies {
     implementation("com.github.nwillc:ksvg:2.2.0")
     implementation("org.choco-solver:choco-solver:4.10.14")
     testImplementation(kotlin("test"))
+    testImplementation("io.kotest:kotest-runner-junit5:5.9.1")
+    testImplementation("io.kotest:kotest-assertions-core-jvm:5.9.1")
 }
 
 tasks.test {

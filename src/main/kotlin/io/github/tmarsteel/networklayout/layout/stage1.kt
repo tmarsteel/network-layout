@@ -7,6 +7,7 @@ import org.chocosolver.solver.Model
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
 import java.util.*
+import kotlin.math.absoluteValue
 
 private data class StationNode(
     val station: Station,
@@ -18,6 +19,20 @@ private data class StationNode(
     }
 
     fun hasEdgeWith(other: StationNode): Boolean = other in edges
+
+    /**
+     * a dimensionless value of how close to the center of the map this value should be located
+     */
+    val insidedness: Int get() {
+        if (edges.size == 1) {
+            // is an end-station, by definition outside
+            return 0
+        }
+
+        return edges.sumOf { connectedNode ->
+            this.station.gravity!!.angleTo(connectedNode.station.gravity!!).absoluteValue
+        }
+    }
 
     fun postToModel(model: Model) {
 
@@ -95,6 +110,9 @@ private class Strand(initialStation: StationNode) {
         return true
     }
 
+    /**
+     * The stations of this strand, sorted by distance to the map center (inwards, most distant station first).
+     */
     private val stationsInOrder = ArrayList<StationNode>(1)
 
     /**
@@ -138,7 +156,6 @@ private class Strand(initialStation: StationNode) {
                         }
                         stationIterator.remove()
                         anyStationSorted = true
-
                     }
                     2 -> {
                         val (indexBefore, indexAfter) = connectsToIndices
@@ -154,8 +171,13 @@ private class Strand(initialStation: StationNode) {
             }
 
             check(anyStationSorted) {
-                "Could not topoligically sort this strand: $stations; stations not sorted: $stationsToSort"
+                "Could not topologically sort this strand: $stations; stations not sorted: $stationsToSort"
             }
+        }
+
+        // make sure the sort direction is correct
+        if (stationsInOrder.first().insidedness > stationsInOrder.last().insidedness) {
+            stationsInOrder.reverse()
         }
     }
 
