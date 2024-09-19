@@ -7,13 +7,17 @@ import org.chocosolver.solver.Model
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.variables.IntVar
 import java.util.*
-import kotlin.math.nextUp
-import kotlin.math.sqrt
 
 private data class StationNode(
     val station: Station,
 ) {
+    private val edges = mutableSetOf<StationNode>()
+    fun addEdge(other: StationNode) {
+        edges.add(other)
+        other.edges.add(this)
+    }
 
+    fun hasEdgeWith(other: StationNode): Boolean = other in edges
 
     fun postToModel(model: Model) {
 
@@ -56,6 +60,39 @@ private class ConnectionEdge(
     }
 }
 
+// there can be multiple independent tracks running in the same direction
+// e.g. in berlin:
+// U7 and S3+S9 run independently to NORTH_WEST, converging in Spandau
+// S7 and S5 run completely independently to NORTH_EAST
+// these independent tracks will be called strands in this code
+private class Strand(initialStation: StationNode) {
+    val stations = mutableSetOf<StationNode>(initialStation)
+
+    /**
+     * Attempts to add the given [candidate] to this strand. Succeeds iff
+     * * [candidate] has a connection to another station in the strand
+     * * the strand remains linear (any station has at most 2 connections to other stations in the strand)
+     * @return whether the station was added or [candidate] was already part of the strand before
+     */
+    fun tryAdd(candidate: StationNode): Boolean {
+        if (candidate in stations) {
+            return true
+        }
+
+        val connectingStation = stations.find { it.hasEdgeWith(candidate) }
+            ?: return false // doesn't connect to this strand (yet)
+
+        val edgeCountBeforeAdd = stations.count { it.hasEdgeWith(connectingStation) }
+        if (edgeCountBeforeAdd >= 2) {
+            // would break linearity
+            return false
+        }
+
+        stations.add(candidate)
+        return true
+    }
+}
+
 /**
  * implements stage 1
  */
@@ -67,6 +104,37 @@ fun Network.placeCornerstoneStationsOnGrid() {
         ?.let { cornerstonesWithoutGravity ->
             error("missing gravity on cornerstone stations " + cornerstonesWithoutGravity.sortedBy { it.station.id }.joinToString(transform = { it.station.toString() }))
         }
+
+
+    val strandsByDirection = mutableMapOf<Direction, MutableSet<Strand>>()
+    cornerstoneNodes
+        .groupBy { it.station.gravity!! }
+        .forEach { (direction, stationNodes) ->
+            val strands = strandsByDirection.computeIfAbsent(direction,  { _ -> HashSet() })
+            val stationNodesToAllocate = stationNodes.toMutableList()
+            allocate@while (stationNodesToAllocate.isNotEmpty()) {
+                val stationsIterator = stationNodesToAllocate.listIterator()
+                while (stationsIterator.hasNext()) {
+                    val stationNode = stationsIterator.next()
+                    for (strand in strands) {
+                        if (strand.tryAdd(stationNode)) {
+                            stationsIterator.remove()
+                            continue@allocate
+                        }
+                    }
+                }
+                // could not allocate any station, start a new strand
+                strands.add(Strand(stationNodesToAllocate.removeFirst()))
+            }
+        }
+
+    strandsByDirection.forEach { direction, strands ->
+        println(direction)
+        strands.forEach {
+            it.stations.map { it.station.name }.forEach(::println)
+            println("---")
+        }
+    }
 }
 
 private fun Network.findCornerstoneStationsAndEdges(): Pair<Set<StationNode>, Set<ConnectionEdge>> {
@@ -89,12 +157,10 @@ private fun Network.findCornerstoneStationsAndEdges(): Pair<Set<StationNode>, Se
             followedStations.add(connection.station)
             if (connection.station in cornerstoneStationsSet) {
                 if (connection.station != stationA) {
-                    edges.add(
-                        ConnectionEdge(
-                            cornerstoneStationNodesByStation.getValue(stationA),
-                            cornerstoneStationNodesByStation.getValue(connection.station)
-                        )
-                    )
+                    val stationANode = cornerstoneStationNodesByStation.getValue(stationA)
+                    val stationBNode = cornerstoneStationNodesByStation.getValue(connection.station)
+                    edges.add(ConnectionEdge(stationANode, stationBNode))
+                    stationANode.addEdge(stationBNode)
                 }
                 return
             }
